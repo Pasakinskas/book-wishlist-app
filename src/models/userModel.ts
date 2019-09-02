@@ -3,7 +3,7 @@ import validator from "validator";
 
 export interface User extends mongoose.Document {
     email: string;
-    pass: string;
+    password: string;
 }
 
 const schema = new mongoose.Schema({

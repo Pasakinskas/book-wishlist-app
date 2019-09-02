@@ -11,7 +11,6 @@ export function createUserRouter() {
             const users = await userService.getAllUsers();
             res.send(users);
         } catch(err) {
-            console.error(err);
             res.status(500);
             res.send(err);
         }
@@ -24,6 +23,28 @@ export function createUserRouter() {
         } catch {
             res.status(404);
             res.send({error: "No user found"});
+        }
+    });
+
+    router.post("/", async (req: Request, res: Response) => {
+        try {
+            const user: User = await userService.createUser(req.body);
+            res.status(201);
+            res.send(user);
+        } catch(err) {
+            res.status(400);
+            res.send({error: err});
+        }
+    });
+
+    router.delete("/:id", async (req: Request, res: Response) => {
+        try {
+            const user: User = await userService.deleteUser(req.params.id);
+            res.status(204);
+            res.send({});
+        } catch(err) {
+            res.status(404);
+            res.send({error: err});
         }
     });
 
