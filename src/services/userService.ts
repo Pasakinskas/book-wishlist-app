@@ -1,5 +1,5 @@
-import { UserModel } from "../../src/models/userModel";
-import { User } from "../models/userModel";
+import { UserModel, User } from "../../src/models/userModel";
+import bcryptjs from 'bcryptjs';
 
 export class UserService {
     async getAllUsers(): Promise<User[]> {
@@ -17,9 +17,12 @@ export class UserService {
     }
 
     async createUser(user: User): Promise<User> {
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(user.password, salt);
+
         const userModel: User = new UserModel({
             email: user.email,
-            password: user.password
+            password: hashedPassword
         });
 
         userModel.validate();

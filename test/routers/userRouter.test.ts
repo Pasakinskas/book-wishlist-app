@@ -10,12 +10,7 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe("Testing route", () => {
-    const server: Server = app.createServer(8080);
-
-    it("GET /users", async () => {
-        const res = await chai.request(server).get("/api/users");
-        expect(res).to.have.status(200);
-    });
+    const server: Server = app.createServer();
 
     it("GET /users/id", async () => {
         const res = await chai.request(server).get("/api/users/5d6d3bf685459b27c456a40f");
@@ -26,8 +21,8 @@ describe("Testing route", () => {
 
     it("POST and DELETE /users", async () => {
         const postResponse = await chai.request(server).post("/api/users").send({
-            email: "specials@email.com",
-            password: "passwordsStronk"
+            email: "boyo@email.com",
+            password: "pass1234"
         });
 
         expect(postResponse).to.have.status(201);
