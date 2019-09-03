@@ -13,10 +13,10 @@ describe("Testing authentication", () => {
     const server: Server = app.createServer();
     let token: string;
 
-    it("login POST /api/auth", async () => {
+    it("Correct login POST /api/auth", async () => {
         const loginResponse = await chai.request(server).post("/api/auth").send({
-            email: "authExample@email.com",
-            password: "pass1234"
+            email: "Password123@email.com",
+            password: "Password123"
         });
 
         token = loginResponse.body.token;
@@ -25,7 +25,15 @@ describe("Testing authentication", () => {
     it("GET all users with jwt auth", async () => {
         const res = await chai.request(server).get("/api/users").set("x-access-token", token);
 
-        console.log(res.body);
+        expect(res).to.have.status(200);
+        expect(res.body).to.be.an('array');
+    })
+
+    it("Bad login attempt POST /api/auth", async () => {
+        const res = await chai.request(server).post("/api/auth").send({
+            email: "authExample@email.com",
+            password: "asdas"
+        });
     })
 
     server.close();

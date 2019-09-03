@@ -21,8 +21,8 @@ describe("Testing route", () => {
 
     it("POST and DELETE /users", async () => {
         const postResponse = await chai.request(server).post("/api/users").send({
-            email: "boyo@email.com",
-            password: "pass1234"
+            email: "testing2135@email.com",
+            password: "Password123"
         });
 
         expect(postResponse).to.have.status(201);

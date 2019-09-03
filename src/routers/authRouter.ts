@@ -1,37 +1,24 @@
 import express, { Request, Response } from "express";
-import { User, UserModel } from "../models/userModel";
-import jwt from "jsonwebtoken";
-import bcryptjs from 'bcryptjs';
+import { User } from "../models/userModel";
+import { AuthService } from "../services/authService";
+import { validatePostedUser } from "../auth/validation/postUserData";
 
 export function authUserRouter() {
     const router = express.Router();
-    const secret = process.env.SECRET || 'thiswillbeadefaultsecretjustincase';
+    const authService = new AuthService();
 
     router.post("/", async (req: Request, res: Response) => {
-        const email = req.body.email;
-        const password = req.body.password;
-        const user: User | null = await UserModel.findOne({ email });
+        const validatedUser: User = validatePostedUser(req.body);
+        try {
 
-        if (user) {
-            const isPasswordCorrect = await bcryptjs.compare(password, user.password);
+            const userJwtToken: string = await authService.authenticate(validatedUser);
+            res.send({
+                success: true,
+                token: userJwtToken
+            })
 
-            if (isPasswordCorrect) {
-                const payload = {
-                    id: user._id,
-                    email: user.email
-                 };
-                 try {
-                    const jwtToken: string = await jwt.sign(payload, secret);
-                    res.send({
-                        success: true,
-                        token: jwtToken
-                    })
-                } catch(err) {
-                    res.status(500).send({error: err});
-                }
-            }
-        } else {
-            res.status(404).send({message: "invalid username or pasword"})
+        } catch(err) {
+            res.status(401).send({error: err.message});
         }
     });
 

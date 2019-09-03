@@ -1,4 +1,4 @@
-import { UserModel, User } from "../../src/models/userModel";
+import { UserModel, User } from "../models/userModel";
 import bcryptjs from 'bcryptjs';
 
 export class UserService {
@@ -6,7 +6,17 @@ export class UserService {
         return UserModel.find();
     }
 
-    async getUserById(id: string): Promise<User> {
+    async getUserByEmail(email: string): Promise<User> {
+        const user = await UserModel.findOne({ email });
+
+        if (user) {
+            return user;
+        } else {
+            throw new Error("User not found");
+        }
+    }
+
+    async getUserById(id: string) {
         const user = await UserModel.findById(id);
 
         if (user) {

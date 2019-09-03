@@ -2,8 +2,9 @@ import express, { Application } from "express";
 import bodyParser from "body-parser";
 import passport from "passport";
 import { passportConfig } from "./auth/passportConfig";
-import { createUserRouter } from "../src/routers/userRouter";
-import { authUserRouter } from "../src/routers/authRouter";
+import { createUserRouter } from "./routers/userRouter";
+import { createBookRouter } from "./routers/bookRouter";
+import { authUserRouter } from "./routers/authRouter";
 import "./db/database";
 
 import dotenv from "dotenv";
@@ -15,10 +16,11 @@ class App {
     static createServer() {
         const app: Application = express();
 
-        app.use(bodyParser.json());
+        app.use(bodyParser.json({ type: 'application/json' }));
         app.use(passport.initialize());
 
         app.use("/api/users", createUserRouter());
+        app.use("/api/books", createBookRouter());
         app.use("/api/auth", authUserRouter());
 
         passportConfig(passport);

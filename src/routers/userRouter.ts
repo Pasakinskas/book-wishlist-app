@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { UserService } from "../services/userService";
+import { validatePostedUser } from "../auth/validation/postUserData";
 import { User } from "../models/userModel";
 import passport from "passport";
 
@@ -12,7 +13,7 @@ export function createUserRouter() {
             const users = await userService.getAllUsers();
             res.send(users);
         } catch(err) {
-            res.status(500).send(err);
+            res.status(500).send({error: err.message});
         }
     });
 
@@ -27,10 +28,11 @@ export function createUserRouter() {
 
     router.post("/", async (req: Request, res: Response) => {
         try {
-            const user: User = await userService.createUser(req.body);
+            const validatedUser: User = validatePostedUser(req.body);
+            const user: User = await userService.createUser(validatedUser);
             res.status(201).send(user);
         } catch(err) {
-            res.status(400).send({error: err});
+            res.status(400).send({error: err.message});
         }
     });
 
@@ -39,7 +41,7 @@ export function createUserRouter() {
             const user: User = await userService.deleteUser(req.params.id);
             res.status(204).send({});
         } catch(err) {
-            res.status(404).send({error: err});
+            res.status(404).send({error: err.message});
         }
     });
 
