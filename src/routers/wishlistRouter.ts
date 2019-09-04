@@ -1,7 +1,4 @@
 import express, { Request, Response } from "express";
-import { BookService } from "../services/bookService";
-import { Book } from "../models/bookModel";
-import { Wishlist, WishlistModel } from "../models/wishlistModel";
 import { WishlistService } from "../services/wishlistService";
 import passport from "passport";
 
@@ -11,11 +8,13 @@ export function createWishlistRouter() {
 
     router.get("/", (req: Request, res: Response) => {
         passport.authenticate('jwt', {session: false}, async (err, user, info) => {
+            if (!user) {
+                res.status(401).send({error: "Error! Authentication is required to access this resource"})
+            }
 
             try {
-                const userWishlist = new WishlistModel({
-                    userId: user._id,
-                })
+                const wishlist = await wishlistService.getWishlistByUserId(user.id);
+                res.send(wishlist);
             } catch(err) {
                 res.status(500).send({error: err.message});
             }
@@ -31,7 +30,24 @@ export function createWishlistRouter() {
             try {
                 const bookIds: string[] = req.body.bookIds;
                 const wishlist = await wishlistService.addToWishlist(bookIds, user.id);
-                console.log(wishlist);
+
+                res.send(wishlist);
+            } catch(err) {
+                console.log(err);
+                res.status(500).send({error: err.message});
+            }
+        })(req, res);
+    });
+
+    router.delete("/books", (req: Request, res: Response) => {
+        passport.authenticate('jwt', {session: false}, async (err, user, info) => {
+            if (!user) {
+                res.status(401).send({error: "Error! Authentication is required to access this resource"})
+            }
+
+            try {
+                const bookIds: string[] = req.body.bookIds;
+                const wishlist = await wishlistService.removeFromWishlist(bookIds, user.id);
 
                 res.send(wishlist);
             } catch(err) {

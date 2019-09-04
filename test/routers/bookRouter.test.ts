@@ -1,28 +1,33 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import app from "../../src/app";
+import { createServer }  from "../../src/app";
 import chaiHttp from "chai-http";
 import { Server } from "http";
+import { getJwtToken } from "../testUtils";
 
 chai.use(chaiAsPromised);
 chai.use(chaiHttp);
 
 const { expect } = chai;
 
-describe("Testing route", () => {
-    const server: Server = app.createServer();
+describe("Testing route", async () => {
+    let server: Server;
 
-    it("POST /books", async () => {
-        const res = await chai.request(server).post("/api/books").send({
-            name: "20000 leagues under the sea",
-            author: "Joules Verne",
-            pages: 350
-        })
-        expect(res).to.have.status(201);
-        expect(res.body).to.haveOwnProperty("name");
-        expect(res.body).to.haveOwnProperty("author");
-        expect(res.body).to.haveOwnProperty("pages");
+    before( async () => {
+        server = await createServer();
     });
 
-    server.close();
+    after(() => {
+        (server as any).close()
+    });
+
+    it("GET /books", async () => {
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkNmU3MjljNjk0NWZlMjgzY2I2NmQyYiIsImVtYWlsIjoiUGFzc3dvcmQxMjNAZW1haWwuY29tIiwiaWF0IjoxNTY3NTM4NTI5fQ.KiFkHQ_yrwcuIyCNHLf0w0LD7-gq6WRZfER2rCtJN7U";
+        const res = await chai.request(server).get("/api/books")
+            .query({wishlist: "true"})
+            .set("x-access-token", token);
+
+        expect(res).to.have.status(200);
+        // expect(res.body).to.be.an('array');
+    });
 });

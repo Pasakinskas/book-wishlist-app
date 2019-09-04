@@ -20,7 +20,7 @@ export function createBookRouter() {
 
             if (req.query.wishlist && req.query.wishlist.toLowerCase() === "true") {
                 const wishlist = await wishlistService.getWishlistByUserId(user.id);
-                res.send(wishlist.books);
+                res.send(wishlist);
             } else {
                 try {
                     const books = await bookService.getAllBooks(limit, skip);
