@@ -1,8 +1,10 @@
 import { BookModel, Book } from "../models/bookModel";
 
 export class BookService {
-    async getAllBooks(): Promise<Book[]> {
-        return BookModel.find();
+    async getAllBooks(limit: number = 0, skip: number = 0): Promise<Book[]> {
+        return BookModel.find()
+            .limit(limit)
+            .skip(skip)
     }
 
     async getBookById(id: string) {

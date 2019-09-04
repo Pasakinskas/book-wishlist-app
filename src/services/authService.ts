@@ -6,7 +6,7 @@ import bcryptjs from 'bcryptjs';
 export class AuthService {
     private secret = process.env.SECRET || 'thiswillbeadefaultsecretjustincase';
 
-    private async generateJWTtoken(user: User): Promise<string> {
+    async generateJWTtoken(user: User): Promise<string> {
         const payload = {
             id: user._id,
             email: user.email

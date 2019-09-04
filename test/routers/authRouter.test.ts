@@ -1,6 +1,6 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import app from "../../src/app";
+import { createServer }  from "../../src/app";
 import chaiHttp from "chai-http";
 import { Server } from "http";
 
@@ -10,7 +10,7 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe("Testing authentication", () => {
-    const server: Server = app.createServer();
+    const server: Server = createServer();
     let token: string;
 
     it("Correct login POST /api/auth", async () => {
