@@ -1,8 +1,11 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { createServer } from "../../src/app";
 import chaiHttp from "chai-http";
 import { Server } from "http";
+
+import { createServer } from "../../src/app";
+import { UserModel } from "../../src/models/userModel";
+import { TestUtils } from "../testUtils";
 
 chai.use(chaiAsPromised);
 chai.use(chaiHttp);
@@ -10,10 +13,26 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe("Testing route", () => {
-    const server: Server = createServer();
+    let server: Server;
+    let userId: string;
+
+    before(async () => {
+        server = createServer();
+        const testUtils = new TestUtils();
+        await testUtils.mockDataForTesting();
+
+        const user = await UserModel.findOne({email: 'testUser1@email.com'});
+        if (user) {
+            userId = user._id;
+        }
+    });
+
+    after(() => {
+        server.close();
+    });
 
     it("GET /users/id", async () => {
-        const res = await chai.request(server).get("/api/users/5d6d3bf685459b27c456a40f");
+        const res = await chai.request(server).get(`/api/users/${userId}`);
         expect(res).to.have.status(200);
         expect(res.body).to.haveOwnProperty("email");
         expect(res.body).to.haveOwnProperty("password");
@@ -21,17 +40,14 @@ describe("Testing route", () => {
 
     it("POST and DELETE /users", async () => {
         const postResponse = await chai.request(server).post("/api/users").send({
-            email: "testing2135@email.com",
-            password: "Password123"
+            email: "turingTesting@email.com",
+            password: "alanTuring"
         });
 
         expect(postResponse).to.have.status(201);
-        expect(postResponse.body).to.haveOwnProperty("_id");
-        expect(postResponse.body).to.haveOwnProperty("email");
-        expect(postResponse.body).to.haveOwnProperty("password");
 
         const deleteResponse = await chai.request(server)
-            .delete(`/api/users/${postResponse.body._id}`);
+            .delete(`/api/users/${postResponse.body.id}`);
 
         expect(deleteResponse).to.have.status(204);
     });
@@ -43,6 +59,4 @@ describe("Testing route", () => {
         expect(res).to.have.status(404);
         expect(res.body).to.haveOwnProperty("error");
     });
-
-    server.close();
 })

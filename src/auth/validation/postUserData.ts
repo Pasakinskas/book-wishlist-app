@@ -1,6 +1,7 @@
 import Joi from "@hapi/joi";
-import { User, UserModel } from "../../models/userModel";
 import validator from 'validator';
+
+import { User, UserModel } from "../../models/userModel";
 
 export function validatePostedUser(loginData: any): User {
     const schema = {

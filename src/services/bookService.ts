@@ -17,6 +17,17 @@ export class BookService {
         }
     }
 
+    createBookFromValues(name: string, author: string, pages: number) {
+        const bookModel: Book = new BookModel({
+            name,
+            author,
+            pages
+        });
+
+        bookModel.validate();
+        return bookModel.save();
+    }
+
     createBook(book: Book): Promise<Book> {
         const bookModel: Book = new BookModel({
             name: book.name,

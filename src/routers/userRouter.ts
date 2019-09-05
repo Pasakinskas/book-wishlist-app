@@ -8,15 +8,6 @@ export function createUserRouter() {
     const router = express.Router();
     const userService = new UserService();
 
-    router.get("/", passport.authenticate('jwt', {session: false}), async (req: Request, res: Response) => {
-        try {
-            const users = await userService.getAllUsers();
-            res.send(users);
-        } catch(err) {
-            res.status(500).send({error: err.message});
-        }
-    });
-
     router.get("/:id", async (req: Request, res: Response) => {
         try {
             const user: User = await userService.getUserById(req.params.id);
@@ -28,9 +19,13 @@ export function createUserRouter() {
 
     router.post("/", async (req: Request, res: Response) => {
         try {
-            const validatedUser: User = validatePostedUser(req.body);
+            const validatedUser = validatePostedUser(req.body);
             const user: User = await userService.createUser(validatedUser);
-            res.status(201).send(user);
+
+            res.status(201).send({
+                email: user.email,
+                id: user._id
+            })
         } catch(err) {
             res.status(400).send({error: err.message});
         }

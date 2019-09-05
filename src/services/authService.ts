@@ -6,9 +6,9 @@ import bcryptjs from 'bcryptjs';
 export class AuthService {
     private secret = process.env.SECRET || 'thiswillbeadefaultsecretjustincase';
 
-    async generateJWTtoken(user: User): Promise<string> {
+    generateJWTtoken(user: User): string {
         const payload = {
-            id: user._id,
+            id: user._id.toString(),
             email: user.email
         };
 
@@ -24,10 +24,8 @@ export class AuthService {
             if (isPasswordCorrect) {
                 return userInDB;
             }
-
             throw new Error("Invalid username or password");
         }
-
         throw new Error("Invalid username or password");
     }
 

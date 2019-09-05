@@ -39,6 +39,19 @@ export class UserService {
         return userModel.save();
     }
 
+    async createUserWithValues(email: string, password: string): Promise<User> {
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(password, salt);
+
+        const userModel: User = new UserModel({
+            email: email,
+            password: hashedPassword
+        });
+
+        userModel.validate();
+        return userModel.save();
+    }
+
     async deleteUser(id: string): Promise<User> {
         const user = await UserModel.findByIdAndDelete(id);
 

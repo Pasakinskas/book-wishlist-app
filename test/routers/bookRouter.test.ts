@@ -1,9 +1,10 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { createServer }  from "../../src/app";
 import chaiHttp from "chai-http";
 import { Server } from "http";
-import { getJwtToken } from "../testUtils";
+
+import { createServer }  from "../../src/app";
+import { TestUtils } from "../testUtils";
 
 chai.use(chaiAsPromised);
 chai.use(chaiHttp);
@@ -12,22 +13,41 @@ const { expect } = chai;
 
 describe("Testing route", async () => {
     let server: Server;
+    let token: string;
 
-    before( async () => {
-        server = await createServer();
+    before(async () => {
+        server = createServer();
+        const testUtils = new TestUtils();
+        await testUtils.mockDataForTesting();
+
     });
 
     after(() => {
-        (server as any).close()
+        server.close();
     });
 
-    it("GET /books", async () => {
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkNmU3MjljNjk0NWZlMjgzY2I2NmQyYiIsImVtYWlsIjoiUGFzc3dvcmQxMjNAZW1haWwuY29tIiwiaWF0IjoxNTY3NTM4NTI5fQ.KiFkHQ_yrwcuIyCNHLf0w0LD7-gq6WRZfER2rCtJN7U";
-        const res = await chai.request(server).get("/api/books")
+    it("GET /books whishlist=true", async () => {
+        const loginResponse = await chai.request(server).post("/api/auth").send({
+            email: "testUser1@email.com",
+            password: "testUser1"
+        });
+
+        token = loginResponse.body.token
+
+        const res = await chai.request(server)
+            .get("/api/books")
             .query({wishlist: "true"})
             .set("x-access-token", token);
 
         expect(res).to.have.status(200);
-        // expect(res.body).to.be.an('array');
     });
+
+    it("GET /books limit=1 skip=1", async () => {
+        const res = await chai.request(server)
+        .get("/api/books")
+        .query({limit: "1", skip: 1})
+        .set("x-access-token", token);
+
+    expect(res).to.have.status(200);
+    })
 });

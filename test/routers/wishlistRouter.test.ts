@@ -1,8 +1,11 @@
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { createServer }  from "../../src/app";
 import chaiHttp from "chai-http";
 import { Server } from "http";
+
+import { createServer }  from "../../src/app";
+import { TestUtils } from "../testUtils";
+import { BookModel } from "../../src/models/bookModel";
 
 chai.use(chaiAsPromised);
 chai.use(chaiHttp);
@@ -11,16 +14,32 @@ const { expect } = chai;
 
 describe("Testing route", async () => {
     let server: Server;
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkNmU3MjljNjk0NWZlMjgzY2I2NmQyYiIsImVtYWlsIjoiUGFzc3dvcmQxMjNAZW1haWwuY29tIiwiaWF0IjoxNTY3NTM4NTI5fQ.KiFkHQ_yrwcuIyCNHLf0w0LD7-gq6WRZfER2rCtJN7U"
-    // const token = await getJwtToken();
+    let token: string;
+    let bookId: string;
 
-    before(() => {
+    before(async () => {
         server = createServer();
+        const testUtils = new TestUtils();
+        await testUtils.mockDataForTesting();
+
+        const book = await BookModel.findOne({name: '20000 Leagues'});
+        if (book) {
+            bookId = book._id;
+        }
     });
 
     after(() => {
         server.close();
     });
+
+    it("Login attempt", async () => {
+        const loginResponse = await chai.request(server).post("/api/auth").send({
+            email: "testUser1@email.com",
+            password: "testUser1"
+        });
+
+        token = loginResponse.body.token
+    })
 
     it("GET /wishlist", async () => {
         const res = await chai.request(server).get("/api/my-wishlist")
@@ -30,26 +49,24 @@ describe("Testing route", async () => {
     });
 
     it("DELETE /wishlist/books", async () => {
-        const res = await chai.request(server).post("/api/my-wishlist/books")
+        const res = await chai.request(server).delete("/api/my-wishlist/books")
             .set("x-access-token", token)
             .send({bookIds: [
-                "5d6eb6ac142c8513d471182a"
+                bookId
             ]
             })
 
         expect(res).to.have.status(200);
-        // expect(res.body).to.be.an('array');
     });
 
     it("POST /wishlist/books", async () => {
         const res = await chai.request(server).post("/api/my-wishlist/books")
             .set("x-access-token", token)
             .send({bookIds: [
-                "5d6eb6ac142c8513d471182a"
+                bookId
             ]
             })
 
         expect(res).to.have.status(200);
-        // expect(res.body).to.be.an('array');
     });
 });

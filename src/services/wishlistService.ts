@@ -1,5 +1,6 @@
-import { WishlistModel, Wishlist } from "../models/wishlistModel";
 import mongoose from "mongoose";
+import { WishlistModel, Wishlist } from "../models/wishlistModel";
+import { Book } from "../models/bookModel";
 import { BookService } from "./bookService";
 
 export class WishlistService {
@@ -8,32 +9,25 @@ export class WishlistService {
             .findOne({ userId: mongoose.Types.ObjectId(userId) })
             .populate("books")
 
-        return wishlist ? wishlist : this.createWishlist(userId);
+        return wishlist || this.createWishlist(userId);
     }
 
-    createWishlist(userId: string) {
+    async createWishlist(userId: string) {
         const wishlist = new WishlistModel({
             userId
         })
 
-        wishlist.save();
-        return wishlist;
+        return wishlist.save();
     }
 
     async removeFromWishlist(bookIds: string[], userId: string) {
-        const bookService = new BookService();
         const wishlist = await this.getWishlistByUserId(userId);
-
-        for (const bookId of bookIds) {
-            wishlist.books.filter(bookInWishlist => {
-                if (bookId === bookInWishlist._id.toString()) {
-                    return bookInWishlist;
-                }
-            })
-        }
-
-        wishlist.save();
-        return wishlist;
+        wishlist.books.forEach(book => {
+            if (!bookIds.includes(book._id.toString())) {
+                wishlist.books.splice(wishlist.books.indexOf(book), 1);
+            }
+        })
+        return wishlist.save();
     }
 
     async deleteWishlist(userId: string){
@@ -44,29 +38,19 @@ export class WishlistService {
     async addToWishlist(bookIds: string[], userId: string): Promise<Wishlist> {
         const bookService = new BookService();
         const wishlist = await this.getWishlistByUserId(userId);
-        const filteredBookIds = this.removeExistingBookIds(bookIds, wishlist);
+        const filteredBookIds = this.getOnlyNewBookIds(bookIds, wishlist.books);
 
-        filteredBookIds.forEach(async (bookId) => {
+        for (const bookId of filteredBookIds) {
             const book = await bookService.getBookById(bookId);
             if (book) {
                 wishlist.books.push(book);
             }
-        });
-        wishlist.save();
-        return wishlist;
+        }
+        return wishlist.save();
     }
 
-    removeExistingBookIds(bookIds: string[], wishlist: Wishlist): string[] {
-        return bookIds.filter(bookId => {
-            let isBookInWishlist: boolean = false;
-
-            for (const bookInWishlist of wishlist.books) {
-                if (bookId === bookInWishlist._id.toString()) {
-                    isBookInWishlist = true;
-                }
-            }
-
-            if (!isBookInWishlist) return bookId;
-        })
+    private getOnlyNewBookIds(bookIds: string[], books: Book[]): string[] {
+        const currentIds = books.map(book => book._id.toString());
+        return bookIds.filter(newId => !currentIds.includes(newId));
     }
 }
